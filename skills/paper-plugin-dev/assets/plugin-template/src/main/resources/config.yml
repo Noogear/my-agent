@@ -1,0 +1,16 @@
+# ExamplePlugin Configuration
+
+# Version (do not change)
+config-version: 1
+
+# Plugin settings
+settings:
+  enabled: true
+  debug: false
+
+# Messages (using MiniMessage format)
+messages:
+  prefix: "<gold>[ExamplePlugin]</gold> "
+  reload: "<green>Configuration reloaded!</green>"
+  welcome: "<gradient:green:aqua>Welcome to the server!</gradient>"
+  no-permission: "<red>You don't have permission to do that!</red>"

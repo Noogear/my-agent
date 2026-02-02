@@ -1,0 +1,877 @@
+---
+name: code-refactor
+description: Java code refactoring and cleanup expert. Use for: (1) Review all methods, group by functionality/purpose, create utility classes (2) Eliminate duplicate code, extract common logic, code refactoring (3) Reorganize package structure based on class responsibilities, move classes to appropriate folders (4) Clean up comments, remove inline comments and verbose descriptions, keep only essential checkstyle-required comments and summaries, supplement javadoc. Trigger words: refactor, clean code, organize code, group methods, extract utility, clean comments, simplify code, code optimization, package restructure, move class, reorganize, eliminate duplication, DRY principle.
+---
+
+# Code Refactor - Refactoring & Cleanup
+
+## 🔄 重构流程：先生成清单，后执行
+
+**CRITICAL**: 收到重构请求后，必须先执行以下步骤：
+
+### Step 1: 代码分析与清单生成
+
+自动分析目标代码并生成**可交互重构清单**，格式如下：
+
+````markdown
+# 📋 重构清单 - [文件/模块名称]
+
+> 请勾选您希望执行的重构项。取消勾选（删除✓）表示跳过该项。
+> 您也可以修改描述或添加备注。完成后回复 "确认执行" 或 "全部执行"。
+
+## 🎯 总览统计
+- 总文件数: X 个
+- 总重构项: Y 个
+- 预估风险等级: [低/中/高]
+- 预估耗时: ~Z 分钟
+
+---
+
+## 📂 一、代码坏味道修复（优先级：高）
+
+### 1.1 长方法重构
+- [ ] **方法**: `ClassName.longMethodName()` (第 123 行)
+  - 当前行数: 45 行
+  - 嵌套层级: 4 层
+  - 建议操作: 拆分为 3 个子方法
+  - 风险等级: 中
+  - 预估改动: ~15 行代码
+
+- [ ] **方法**: `ClassName.anotherLongMethod()` (第 234 行)
+  - 当前行数: 38 行
+  - 嵌套层级: 3 层
+  - 建议操作: 提取循环逻辑到独立方法
+  - 风险等级: 低
+  - 预估改动: ~10 行代码
+
+### 1.2 大类拆分
+- [ ] **类**: `LargeClass` (456 行)
+  - 公共方法数: 15 个
+  - 职责分析: 混合了配置管理、数据验证、日志记录
+  - 建议操作: 拆分为 `ConfigManager`、`DataValidator`、`Logger` 三个类
+  - 风险等级: 高
+  - 预估改动: 创建 3 个新类，移动 200+ 行代码
+
+### 1.3 重复代码消除
+- [ ] **重复模式 1**: 字符串规范化逻辑（出现 5 次）
+  - 位置: L45, L89, L123, L234, L456
+  - 重复代码:
+    ```java
+    String normalized = input.toLowerCase().trim();
+    if (normalized.isEmpty()) return defaultValue;
+    ```
+  - 建议操作: 提取到 `StringUtils.normalizeOrDefault()`
+  - 风险等级: 低
+  - 预估改动: 新增 1 个工具方法，替换 5 处调用
+
+- [ ] **重复模式 2**: 空值检查逻辑（出现 8 次）
+  - 位置: L34, L67, L99, L145, L189, L234, L289, L345
+  - 重复代码:
+    ```java
+    if (obj == null || obj.isEmpty() || !obj.isValid()) {
+        throw new IllegalArgumentException("Invalid");
+    }
+    ```
+  - 建议操作: 提取到 `Preconditions.requireValid()`
+  - 风险等级: 低
+  - 预估改动: 新增 1 个验证方法，替换 8 处调用
+
+### 1.4 特性妒忌（Feature Envy）
+- [ ] **方法**: `ClassA.processUser()` 使用 `User` 类的 8 个方法
+  - 当前位置: ClassA.java:45
+  - 建议操作: 移动到 `User` 类作为实例方法
+  - 风险等级: 中
+  - 预估改动: 移动 20 行代码，更新 3 处调用
+
+### 1.5 数据泥团（Data Clump）
+- [ ] **参数组 1**: `startDate, endDate, format` 共同出现 6 次
+  - 涉及方法: `formatDate()`, `validateDate()`, `parseDate()`, 等
+  - 建议操作: 创建 `DateRange` record 类
+  - 风险等级: 中
+  - 预估改动: 新增 1 个 record，修改 6 个方法签名
+
+---
+
+## 🧩 二、方法组织与工具类提取（优先级：中）
+
+### 2.1 静态工具方法提取
+
+#### 2.1.1 字符串处理
+- [ ] **提取到**: `util/StringUtils.java` (新建)
+  - 方法列表:
+    - [ ] `normalize(String)` - 从 3 处提取
+    - [ ] `isValidLength(String, int)` - 从 2 处提取
+    - [ ] `sanitize(String)` - 从 4 处提取
+  - 风险等级: 低
+  - 预估改动: 新建类，移动 30 行代码
+
+#### 2.1.2 集合操作
+- [ ] **提取到**: `util/CollectionUtils.java` (新建)
+  - 方法列表:
+    - [ ] `filterNulls(List<T>)` - 从 5 处提取
+    - [ ] `partition(List<T>, int)` - 从 2 处提取
+    - [ ] `findDuplicates(List<T>)` - 从 3 处提取
+  - 风险等级: 低
+  - 预估改动: 新建类，移动 45 行代码
+
+#### 2.1.3 反射操作
+- [ ] **提取到**: `util/ReflectionUtils.java` (新建)
+  - 方法列表:
+    - [ ] `getFieldValue(Object, String)` - 从 4 处提取
+    - [ ] `setAccessible(Field)` - 从 6 处提取
+    - [ ] `findAnnotation(Class, Class<A>)` - 从 3 处提取
+  - 风险等级: 低
+  - 预估改动: 新建类，移动 50 行代码
+
+### 2.2 方法分组重组
+- [ ] **类**: `ConfigManager` - 按职责重新分组
+  - 当前: 方法顺序混乱
+  - 建议分组:
+    1. 生命周期方法 (load, save, reload)
+    2. 验证方法 (validate, check)
+    3. 访问器方法 (getters)
+  - 风险等级: 低
+  - 预估改动: 调整方法顺序，添加分组注释
+
+---
+
+## 📦 三、包结构重组（优先级：中）
+
+### 3.1 注解移动
+- [ ] **文件**: `@Template` 注解
+  - 当前: `src/main/java/gloomlib/config/Template.java`
+  - 目标: `src/main/java/gloomlib/annotation/Template.java`
+  - 原因: 注解应统一放在 annotation 包
+  - 风险等级: 低
+  - 预估改动: 移动 1 个文件，更新 import
+
+### 3.2 异常类移动
+- [ ] **文件**: `ConfigurationException`
+  - 当前: `src/main/java/gloomlib/config/ConfigurationException.java`
+  - 目标: `src/main/java/gloomlib/exception/ConfigurationException.java`
+  - 原因: 异常应统一放在 exception 包
+  - 风险等级: 低
+  - 预估改动: 移动 1 个文件，更新 5 处 import
+
+### 3.3 工具类移动
+- [ ] **文件**: `StringHelper`
+  - 当前: `src/main/java/gloomlib/config/StringHelper.java`
+  - 目标: `src/main/java/gloomlib/util/StringUtils.java`
+  - 原因: 工具类应放在 util 包，且重命名为 *Utils
+  - 风险等级: 低
+  - 预估改动: 移动 1 个文件，重命名，更新 8 处 import
+
+### 3.4 接口与实现分离
+- [ ] **创建接口包**: `api/` (新建)
+  - 移动接口:
+    - [ ] `Translator` → `api/Translator.java`
+    - [ ] `ConfigLoader` → `api/ConfigLoader.java`
+  - 风险等级: 低
+  - 预估改动: 移动 2 个接口，更新 import
+
+- [ ] **创建实现包**: `impl/` (新建)
+  - 移动实现类:
+    - [ ] `TranslatorImpl` → `impl/TranslatorImpl.java`
+    - [ ] `ConfigLoaderImpl` → `impl/ConfigLoaderImpl.java`
+  - 风险等级: 低
+  - 预估改动: 移动 2 个类，更新 import
+
+---
+
+## 📝 四、注释与文档优化（优先级：低）
+
+### 4.1 清理冗余注释
+- [ ] **删除无用注释** (共 23 处)
+  - 类型明细:
+    - [ ] 自动生成的作者标签 (@author) - 12 处
+    - [ ] 版本标签 (@version) - 8 处
+    - [ ] 废弃的 since 标签 (@since) - 3 处
+  - 风险等级: 低
+  - 预估改动: 删除 23 行注释
+
+### 4.2 简化 JavaDoc
+- [ ] **类文档简化** (共 15 个类)
+  - 示例:
+    - 当前: "This class is responsible for managing translation..." (3 行)
+    - 优化: "Translation manager implementation." (1 行)
+  - 风险等级: 低
+  - 预估改动: 精简 45 行文档
+
+- [ ] **方法文档简化** (共 34 个方法)
+  - 删除显而易见的 getter/setter 文档
+  - 保留复杂逻辑的文档
+  - 风险等级: 低
+  - 预估改动: 删除 20 行，精简 14 行
+
+### 4.3 补充缺失文档
+- [ ] **添加类文档** (共 5 个类缺失)
+  - `StringUtils`, `ReflectionHelper`, 等
+  - 风险等级: 低
+  - 预估改动: 新增 5 个类文档注释
+
+- [ ] **添加公共方法文档** (共 8 个方法缺失)
+  - 公共 API 必须有文档
+  - 风险等级: 低
+  - 预估改动: 新增 8 个方法文档注释
+
+---
+
+## 🔧 五、代码习惯优化（优先级：低）
+
+### 5.1 魔法数字提取
+- [ ] **常量化魔法数字** (共 12 处)
+  - 示例:
+    - `List<String> list = new ArrayList<>(16);` → `DEFAULT_LIST_CAPACITY`
+    - `Thread.sleep(5000);` → `RETRY_DELAY_MS`
+  - 风险等级: 低
+  - 预估改动: 新增 12 个常量，替换 12 处使用
+
+### 5.2 反模式修复
+- [ ] `if (x) return true; else return false;` → `return x;` (3 处)
+- [ ] `if (x == true)` → `if (x)` (5 处)
+- [ ] `str.equals("")` → `str.isEmpty()` (7 处)
+- [ ] `list.size() == 0` → `list.isEmpty()` (4 处)
+- [ ] `new Integer(x)` → `Integer.valueOf(x)` (2 处)
+  - 风险等级: 低
+  - 预估改动: 修改 21 行代码
+
+### 5.3 Java 现代化
+- [ ] **使用 var 关键字** (适用 15 处)
+  - `String name = "test";` → `var name = "test";`
+  - 风险等级: 低
+  - 预估改动: 简化 15 行代码
+
+- [ ] **使用 Text Blocks** (适用 3 处)
+  - 多行字符串拼接 → Java 15+ text blocks
+  - 风险等级: 低
+  - 预估改动: 简化 3 处字符串定义
+
+- [ ] **使用 Record 类** (适用 2 个 DTO)
+  - `UserDTO` POJO → record
+  - `ConfigData` POJO → record
+  - 风险等级: 低
+  - 预估改动: 简化 40 行代码
+
+### 5.4 异常处理改进
+- [ ] **移除空 catch 块** (2 处)
+  - 添加日志或重新抛出
+  - 风险等级: 中
+  - 预估改动: 添加异常处理逻辑
+
+---
+
+## 📊 六、性能优化（可选，优先级：低）
+
+### 6.1 集合预分配
+- [ ] **ArrayList 初始容量** (8 处)
+  - 已知大小时预分配容量
+  - 风险等级: 低
+  - 性能提升: 减少扩容操作
+
+### 6.2 字符串拼接优化
+- [ ] **循环中的 String +** (3 处)
+  - 替换为 `StringBuilder`
+  - 风险等级: 低
+  - 性能提升: O(n²) → O(n)
+
+### 6.3 流式 API 优化
+- [ ] **并行流使用** (2 处)
+  - 大集合操作可使用 `parallelStream()`
+  - 风险等级: 中
+  - 性能提升: 利用多核处理
+
+---
+
+## ✅ 执行后验证清单
+
+- [ ] 所有测试通过 (`./gradlew test`)
+- [ ] 代码风格检查通过 (`./gradlew checkstyle`)
+- [ ] 无新增编译警告
+- [ ] 测试覆盖率未降低
+- [ ] Git diff 审查完成
+
+---
+
+**请审查上述清单，告知：**
+1. 取消勾选不需要的项（标记为 `- [ ]`）
+2. 修改任何描述或备注
+3. 回复 "确认执行" 开始重构，或 "全部执行" 执行所有项
+````
+
+### Step 2: 等待用户确认
+
+**必须等待用户审查并确认清单后，才能开始执行重构。**
+
+用户可能的响应：
+- ✅ "确认执行" / "全部执行" → 开始执行勾选的项
+- ✏️ 修改清单（取消勾选、添加备注）→ 根据修改后的清单执行
+- ⏭️ "只执行低风险的" → 筛选低风险项执行
+- 🔍 "先看看 X 部分的代码" → 展示相关代码供审查
+- ❌ "取消" → 停止重构流程
+
+### Step 3: 按优先级执行
+
+根据用户确认的清单，按照以下顺序执行：
+
+```
+1. 代码坏味道修复（低风险项）
+2. 工具类提取
+3. 方法重组
+4. 注释优化
+5. 包结构重组（最后执行）
+```
+
+每完成一个大类，提供进度更新：
+```
+✅ [1/6] 代码坏味道修复 - 完成
+   - 修复长方法: 2/2
+   - 消除重复: 2/2
+   
+🔄 [2/6] 工具类提取 - 进行中...
+```
+
+---
+
+## 💡 清单生成智能规则
+
+### 自动检测优先级
+
+
+| 检测项 | 高优先级 | 中优先级 | 低优先级 |
+|--------|----------|----------|----------|
+| **长方法** | >50 行 | 30-50 行 | 20-30 行 |
+| **复杂度** | >15 圈复杂度 | 10-15 | 5-10 |
+| **重复代码** | 10+ 行重复 | 5-10 行 | 3-5 行 |
+| **大类** | >500 行 | 300-500 行 | 200-300 行 |
+| **长参数列表** | >6 参数 | 4-6 参数 | - |
+
+### 风险等级判定
+
+```python
+风险 = 低  # 默认
+
+if 改动涉及公共API签名:
+    风险 = 高
+elif 改动涉及核心算法逻辑:
+    风险 = 中
+elif 改动行数 > 50:
+    风险 = 中
+elif 缺少单元测试覆盖:
+    风险 += 1级
+
+if 有完整集成测试:
+    风险 -= 1级
+```
+
+### 自动分类规则
+
+**工具类识别模式**：
+```regex
+类名: .*Utils?|.*Helper|.*Tool
+特征: 
+  - 所有方法均为 public static
+  - 私有构造函数
+  - 无实例字段
+  - 无继承关系
+```
+
+**重复代码模式**：
+```
+Type 1: 完全相同（hash 匹配）
+Type 2: 语义相同（AST 结构匹配）
+Type 3: 部分相同（编辑距离 < 20%）
+```
+
+---
+
+## 📋 清单生成模板（自动填充）
+
+执行分析时自动填充以下清单：
+
+```markdown
+## 分析结果摘要
+- 扫描文件: {file_count} 个
+- 代码行数: {total_lines} 行
+- 检测问题: {issue_count} 个
+- 高优先级: {high_priority} 个
+- 中优先级: {medium_priority} 个
+- 低优先级: {low_priority} 个
+- 预估总耗时: {estimated_time} 分钟
+
+## 重构价值评估
+- 可消除重复代码: {duplicate_lines} 行
+- 可提取工具方法: {util_methods} 个
+- 可改进可读性: {readability_score_delta} 分
+- 可降低圈复杂度: {complexity_reduction} 点
+```
+
+---
+
+## 🔍 执行流程详解
+
+### Phase 1: 代码扫描与问题定位
+
+**自动扫描清单项检测**：
+
+1. **长方法扫描**
+   ```java
+   // 分析方法体
+   for (Method m : class.getMethods()) {
+       int lines = m.getLineCount();
+       int complexity = m.getCyclomaticComplexity();
+       int nesting = m.getMaxNestingLevel();
+       
+       if (lines > 30 || complexity > 10 || nesting > 3) {
+           clearChecklist.add("长方法: " + m.getName() + 
+               " (行数:" + lines + ", 复杂度:" + complexity + ")");
+       }
+   }
+   ```
+
+2. **重复代码检测**
+   ```java
+   // Clone detection
+   Map<String, List<Location>> codeBlocks = new HashMap<>();
+   
+   for (CodeBlock block : allBlocks) {
+       String hash = block.computeHash();
+       codeBlocks.computeIfAbsent(hash, k -> new ArrayList<>())
+                 .add(block.getLocation());
+   }
+   
+   // 标记重复出现 2 次以上的代码块
+   codeBlocks.entrySet().stream()
+       .filter(e -> e.getValue().size() >= 2)
+       .forEach(e -> addToChecklist("重复代码", e.getValue()));
+   ```
+
+3. **包结构分析**
+   ```java
+   // 检查类是否在正确的包中
+   for (Class c : allClasses) {
+       String expectedPackage = inferPackage(c);
+       String actualPackage = c.getPackage();
+       
+       if (!expectedPackage.equals(actualPackage)) {
+           addToChecklist("包结构", 
+               "移动 " + c.getName() + 
+               " 从 " + actualPackage + 
+               " 到 " + expectedPackage);
+       }
+   }
+   ```
+
+### Phase 2: 清单交互流程
+
+```
+1. 生成初始清单 (Markdown 格式)
+   ↓
+2. 展示给用户，等待反馈
+   ↓
+3. 用户响应分支:
+   ├─ "确认执行" → 解析勾选项 → 开始执行
+   ├─ "全部执行" → 全选 → 开始执行
+   ├─ "只执行低风险" → 筛选风险=低 → 开始执行
+   ├─ "跳过 X 部分" → 取消该分类勾选 → 重新展示
+   └─ 修改清单 → 解析用户修改 → 重新展示
+   ↓
+4. 开始执行（按优先级排序）
+```
+
+### Phase 3: 执行与进度报告
+
+**执行时实时报告**：
+
+```markdown
+## 🚀 执行进度
+
+### 总进度: ████████░░ 80% (12/15 已完成)
+
+---
+
+### ✅ [1/6] 代码坏味道修复 - 已完成
+- ✅ 长方法重构: 2/2
+  - ✅ `UserService.validateUser()` - 拆分为 3 个方法
+  - ✅ `ConfigLoader.loadConfig()` - 提取循环逻辑
+- ✅ 重复代码消除: 2/2
+  - ✅ 字符串规范化 → `StringUtils.normalize()`
+  - ✅ 空值检查 → `Preconditions.requireValid()`
+
+### ✅ [2/6] 工具类提取 - 已完成
+- ✅ `StringUtils.java` 创建并迁移 3 个方法
+- ✅ `CollectionUtils.java` 创建并迁移 3 个方法
+
+### 🔄 [3/6] 包结构重组 - 进行中 (1/3)
+- ✅ 移动 `@Template` → `annotation/`
+- ⏳ 移动 `ConfigException` → `exception/` ...
+- ⏸️ 移动 `StringHelper` → `util/` (待执行)
+
+### ⏸️ [4/6] 注释优化 - 待执行
+### ⏸️ [5/6] 代码习惯优化 - 待执行
+### ⏸️ [6/6] 性能优化 - 待执行
+
+---
+
+**预估剩余时间**: ~5 分钟
+```
+
+---
+
+## 📖 完整重构指南（原内容保留）
+
+### 代码坏味道检测表
+
+| Smell | Detection Pattern | Severity |
+|-------|-------------------|----------|
+| **Long Method** | >30 lines or >3 levels of nesting | High |
+| **Large Class** | >300 lines or >10 public methods | High |
+| **Duplicate Code** | 3+ identical lines appearing 2+ times | High |
+| **Feature Envy** | Method uses another class's data more than its own | Medium |
+| **Data Clump** | Same 3+ params appear together repeatedly | Medium |
+| **Primitive Obsession** | Using primitives instead of small objects | Medium |
+| **Long Parameter List** | >4 parameters | Medium |
+| **Dead Code** | Unreachable/unused code | Low |
+| **Speculative Generality** | Unused abstractions "for future use" | Low |
+
+Quick wins (fix first):
+- Unused imports → Delete
+- Unused private methods → Delete  
+- Unused variables → Delete
+- Magic numbers → Extract to constants
+
+
+### 方法分组策略
+
+Group methods by the following dimensions:
+
+| Category | Examples | Target Class |
+|----------|----------|--------------|
+| IO Operations | File read/write, stream processing | `FileUtils` / `IOUtils` |
+| String Processing | Parsing, formatting, validation | `StringUtils` / `TextUtils` |
+| Collection Operations | Filtering, transformation, aggregation | `CollectionUtils` |
+| Reflection Utilities | Field access, type checking | `ReflectionUtils` |
+| Validation Logic | Null checks, range checks, format checks | `Preconditions` / `Validators` |
+| Conversion Logic | Type casting, DTO mapping | `Converters` |
+| Date/Time | Formatting, parsing, calculations | `TimeUtils` |
+
+Decision tree:
+```
+Is method stateless (no instance fields used)?
+├─ Yes → Candidate for utility class
+│   └─ Used by 2+ classes? → Extract to shared util
+│   └─ Used by 1 class only? → Keep as private static
+└─ No → Keep as instance method
+    └─ Used by child classes? → Consider protected
+```
+
+
+### 重复代码消除策略
+
+#### Detection Patterns
+
+```java
+// Type 1: Exact Clone - identical code
+// Action: Extract Method immediately
+
+// Type 2: Renamed Clone - same structure, different names
+void processUser(User u) { validate(u); save(u); log(u); }
+void processOrder(Order o) { validate(o); save(o); log(o); }
+// Action: Extract generic method with type parameter
+
+// Type 3: Near Clone - minor differences
+if (user != null && user.isActive()) { ... }
+if (order != null && order.isValid()) { ... }
+// Action: Extract with functional parameter
+
+// Type 4: Semantic Clone - different code, same purpose
+// Action: Keep one, delete others
+```
+
+#### Refactoring Techniques
+
+| Technique | When to Use | Example |
+|-----------|-------------|---------|
+| Extract Method | Same class, 3+ duplicate lines | `calculateTotal()` |
+| Extract Superclass | Related classes share behavior | `AbstractProcessor` |
+| Extract Interface | Need polymorphism | `Validatable` |
+| Template Method | Same algorithm, different steps | `process()` + `doProcess()` |
+| Strategy Pattern | Interchangeable algorithms | `SortStrategy` |
+| Introduce Parameter Object | 3+ params always together | `DateRange(start, end)` |
+
+
+### 包结构重组指南
+
+#### Quick Classification Table
+
+| Class Pattern | Target Package | Detection Keywords |
+|--------------|----------------|-------------------|
+| `*Utils`, `*Helper` | `util/` | static methods only, no state |
+| `@interface *` | `annotation/` | annotation definition |
+| `*Exception`, `*Error` | `exception/` | extends Throwable |
+| `interface *` (API) | `api/` | public contract, no impl |
+| `*Impl`, `*Default*` | `impl/` | implements interface |
+| `*DTO`, `*VO`, `*Entity` | `model/` | data holder, getters/setters |
+| `*Config`, `*Settings` | `config/` | configuration values |
+| `*Event`, `*Listener` | `event/` | event system |
+| `*Handler`, `*Processor` | `handler/` | handles/processes something |
+| `*Factory` | `factory/` | creates objects |
+| `*Builder` | `builder/` | fluent build pattern |
+| `*Serializer`, `*Codec` | `serializer/` | serialize/deserialize |
+| `*Validator`, `*Checker` | `validator/` | validation logic |
+| `*Adapter`, `*Wrapper` | `adapter/` | adapts interface |
+| `*Registry`, `*Manager` | `registry/` | manages instances |
+| `*Service` | `service/` | business logic |
+| `*Repository`, `*Dao` | `repository/` | data access |
+| `*Controller` | `controller/` | request handling |
+| `*Converter`, `*Mapper` | `converter/` | type conversion |
+| `*Provider`, `*Supplier` | `provider/` | supplies instances |
+
+#### Class Detection Rules
+
+```java
+// → util/
+public final class StringUtils {
+    private StringUtils() {}  // private constructor
+    public static String trim(String s) { ... }  // all static
+}
+
+// → annotation/
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Check { ... }
+
+// → exception/
+public class ConfigException extends RuntimeException { ... }
+
+// → api/
+public interface Translator { Component translate(String key); }
+
+// → impl/
+public class MiniMessageTranslatorImpl implements Translator { ... }
+
+// → model/
+public record UserDTO(String name, int age) {}
+public class ConfigData { private String value; /* getters/setters */ }
+
+// → factory/
+public class TranslatorFactory {
+    public static Translator create(Type type) { ... }
+}
+
+// → builder/
+public class WindowBuilder {
+    public WindowBuilder title(String t) { ...; return this; }
+    public Window build() { ... }
+}
+```
+
+#### Move Decision Flow
+
+```
+1. Is it an annotation? → annotation/
+2. Is it an exception? → exception/
+3. Is it an interface without impl? → api/
+4. Is it implementing an interface in api/? → impl/
+5. Is class name ending with Utils/Helper AND all methods static? → util/
+6. Is it a pure data holder (record/POJO)? → model/
+7. Does it create other objects? → factory/
+8. Does it use fluent API returning this? → builder/
+9. Does it validate something? → validator/
+10. Does it convert types? → converter/
+11. None of above → Keep in current location
+```
+
+#### Move Execution Checklist
+
+```bash
+# Step 1: Create target directory
+mkdir -p src/main/java/package/util
+
+# Step 2: Move file
+git mv OldPath.java NewPath.java
+
+# Step 3: Update package declaration in moved file
+# package old.package; → package new.package;
+
+# Step 4: Find and update all imports
+grep -r "import old.package.ClassName" --include="*.java" -l
+
+# Step 5: Verify build
+./gradlew build
+
+# Step 6: Commit
+git commit -m "refactor: move ClassName to util package"
+```
+
+
+### 注释优化规则 - Core Summary Only
+
+#### Javadoc Minimalism Rules
+
+**Class/Interface - ONE sentence only:**
+```java
+// ❌ Before: Verbose
+/**
+ * This class is responsible for translating messages using
+ * the MiniMessage format. It provides various methods to
+ * translate keys with placeholders and supports multiple
+ * output formats including Component, String, and legacy text.
+ * 
+ * <p>Features:
+ * <ul>
+ *   <li>Placeholder support</li>
+ *   <li>Multiple formats</li>
+ *   <li>Caching</li>
+ * </ul>
+ * 
+ * @author John
+ * @version 1.0
+ * @since 2024-01-01
+ */
+public class MiniMessageTranslatorImpl { ... }
+
+// ✅ After: Core summary
+/**
+ * MiniMessage-based translator implementation.
+ */
+public class MiniMessageTranslatorImpl implements Translator { ... }
+```
+
+**Method - Verb + Object, skip obvious:**
+```java
+// ❌ Before
+/**
+ * Gets the name of the player.
+ * @return the name
+ */
+public String getName() { return name; }
+
+// ✅ After: No javadoc needed for simple getters
+public String getName() { return name; }
+
+// ❌ Before
+/**
+ * Translates the given key to a Component using the provided
+ * placeholders. This method looks up the key in the message
+ * source and applies MiniMessage formatting.
+ * 
+ * @param key the translation key to look up
+ * @param placeholders the placeholders to replace
+ * @return the translated Component
+ */
+public Component translate(String key, Object... placeholders);
+
+// ✅ After
+/**
+ * Translates key to Component with placeholders.
+ */
+public Component translate(String key, Object... placeholders);
+```
+
+**Field - One phrase or skip:**
+```java
+// ❌ Before
+/** The message source that provides translation strings. */
+private final MessageSource source;
+
+// ✅ After
+/** Translation string source. */
+private final MessageSource source;
+
+// ✅ Or skip entirely for obvious fields
+private final MessageSource source;
+```
+
+#### Comment Elimination Checklist
+
+| Remove | Example |
+|--------|---------|
+| Author tags | `@author John` |
+| Version tags | `@version 1.0` |
+| Since tags (usually) | `@since 2024-01-01` |
+| See tags (most) | `@see OtherClass` |
+| Feature lists | `<ul><li>Feature 1</li>...` |
+| Implementation details | "This uses HashMap internally" |
+| Obvious descriptions | "Gets the name" for `getName()` |
+| History/changelog | "Added in v2.0" |
+| Redundant @return | `@return the name` for `getName()` |
+
+#### Keep Only
+
+| Keep | Reason |
+|------|--------|
+| Non-obvious behavior | `// Returns empty list, never null` |
+| Constraints | `@param file must exist and be readable` |
+| Thread safety notes | `// Not thread-safe` |
+| Null handling | `@return null if not found` |
+| Side effects | `// Modifies input list` |
+| Why not what | `// Using LinkedList for O(1) removal` |
+
+#### Quick Javadoc Templates
+
+```java
+// Class: ONE sentence
+/** [What it is/does]. */
+
+// Interface: ONE sentence  
+/** Contract for [purpose]. */
+
+// Method (non-trivial): Verb phrase
+/** [Verb] [object] [condition/context]. */
+
+// Exception: When thrown
+/** Thrown when [condition]. */
+
+// Constant: What it represents
+/** [What this value means]. */
+```
+
+## Anti-Patterns to Fix
+
+| Anti-Pattern | Fix |
+|--------------|-----|
+| `if (x) return true; else return false;` | `return x;` |
+| `if (x == true)` | `if (x)` |
+| `if (x == false)` | `if (!x)` |
+| `str.equals("")` | `str.isEmpty()` |
+| `list.size() == 0` | `list.isEmpty()` |
+| `obj.toString().equals(...)` | Use proper equals |
+| `catch (Exception e) { }` | Log or rethrow |
+| `new Integer(x)` | `Integer.valueOf(x)` |
+| `"" + number` | `String.valueOf(number)` |
+| Double-checked locking wrong | Use `volatile` or holder pattern |
+
+## Incremental Refactoring Strategy
+
+For large codebases, refactor incrementally:
+
+```
+Week 1: Quick wins only (unused code, magic numbers, obvious duplication)
+Week 2: Comment cleanup + Javadoc
+Week 3: Extract utility methods within same class
+Week 4: Extract utility classes
+Week 5: Package reorganization
+```
+
+Each step must:
+- Pass all tests
+- Be a complete, working state
+- Be independently revertable
+
+## Safety Checklist
+
+Before refactoring:
+- [ ] All tests pass
+- [ ] Git working tree is clean
+- [ ] Feature branch created
+
+During refactoring:
+- [ ] Commit after each logical change
+- [ ] Run tests after each commit
+- [ ] No public API signature changes (unless requested)
+
+After refactoring:
+- [ ] All tests still pass
+- [ ] No new compiler warnings
+- [ ] Checkstyle passes
+- [ ] Coverage not decreased
+

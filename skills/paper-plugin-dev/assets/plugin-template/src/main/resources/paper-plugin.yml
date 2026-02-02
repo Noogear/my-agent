@@ -1,0 +1,26 @@
+name: ExamplePlugin
+version: '${project.version}'
+main: com.example.ExamplePlugin
+api-version: '1.21'
+description: A Paper plugin
+author: YourName
+
+# Uncomment for Folia support
+# folia-supported: true
+
+# Permissions
+permissions:
+  example.use:
+    description: Basic permission
+    default: true
+  example.admin:
+    description: Admin permission
+    default: op
+
+# Commands
+commands:
+  example:
+    description: Example command
+    usage: /<command> [args]
+    permission: example.use
+    aliases: [ex]
