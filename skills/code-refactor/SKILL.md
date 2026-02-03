@@ -140,16 +140,31 @@ Create the file with the following structure. **Use the user's language** (detec
 - [x] **3.2.1 Extract `{ClassName}`** — {description}
 - [x] **3.2.2 Extract interface/protocol** — Decouple `{dependency}`
 
-## 4. Package/Module Reorganization (High Risk) 📦
+## 4. Bundle Size Optimization 📦➖
 
-- [x] **4.1 Move `{file}`** — `{oldPath}` → `{newPath}`
-- [x] **4.2 Create `{folderName}/` directory** — Move {count} related files
+### 4.1 Dead Code Removal
+- [x] **4.1.1 Remove unused class** — `{file}` (0 references)
+- [x] **4.1.2 Remove unused methods** — {count} private methods across {fileCount} files
+- [x] **4.1.3 Remove unused dependency** — `{dependency}` (not used)
 
-## 5. Documentation Cleanup (Low Risk) 📝
+### 4.2 Class Consolidation
+- [x] **4.2.1 Merge small utils** — `{class1}` + `{class2}` → `{targetClass}`
+- [x] **4.2.2 Inline single-use class** — `{className}` → inline to `{targetClass}`
 
-- [x] **5.1 Simplify verbose docs** — `{file}` ({before} lines → {after} lines)
-- [x] **5.2 Remove redundant tags** — {count} files
-- [x] **5.3 Add missing docs** — {count} public APIs need documentation
+### 4.3 Abstraction Reduction
+- [x] **4.3.1 Remove unused interface** — `{interface}` (only 1 impl, not in API)
+- [x] **4.3.2 Merge abstract + single child** — `{abstract}` + `{child}` → `{merged}`
+
+## 5. Package/Module Reorganization (High Risk) 📦
+
+- [x] **5.1 Move `{file}`** — `{oldPath}` → `{newPath}`
+- [x] **5.2 Create `{folderName}/` directory** — Move {count} related files
+
+## 6. Documentation Cleanup (Low Risk) 📝
+
+- [x] **6.1 Simplify verbose docs** — `{file}` ({before} lines → {after} lines)
+- [x] **6.2 Remove redundant tags** — {count} files
+- [x] **6.3 Add missing docs** — {count} public APIs need documentation
 
 ---
 
@@ -205,16 +220,31 @@ Create the file with the following structure. **Use the user's language** (detec
 - [x] **3.2.1 提取 `{ClassName}`** — {description}
 - [x] **3.2.2 提取接口/协议** — 解耦 `{dependency}`
 
-## 4. 包/模块重组（高风险）📦
+## 4. 包体积优化 📦➖
 
-- [x] **4.1 移动 `{file}`** — `{oldPath}` → `{newPath}`
-- [x] **4.2 创建 `{folderName}/` 目录** — 移动 {count} 个相关文件
+### 4.1 死代码移除
+- [x] **4.1.1 删除未使用的类** — `{file}`（0 引用）
+- [x] **4.1.2 删除未使用的方法** — {count} 个私有方法，分布在 {fileCount} 个文件
+- [x] **4.1.3 移除未使用的依赖** — `{dependency}`（未使用）
 
-## 5. 文档清理（低风险）📝
+### 4.2 类合并
+- [x] **4.2.1 合并小型工具类** — `{class1}` + `{class2}` → `{targetClass}`
+- [x] **4.2.2 内联单次使用的类** — `{className}` → 内联到 `{targetClass}`
 
-- [x] **5.1 简化冗长文档** — `{file}`（{before} 行 → {after} 行）
-- [x] **5.2 删除冗余标签** — {count} 个文件
-- [x] **5.3 补充缺失文档** — {count} 个公共 API 需要文档
+### 4.3 抽象精简
+- [x] **4.3.1 移除未使用的接口** — `{interface}`（仅 1 个实现，非公开 API）
+- [x] **4.3.2 合并抽象类和唯一子类** — `{abstract}` + `{child}` → `{merged}`
+
+## 5. 包/模块重组（高风险）📦
+
+- [x] **5.1 移动 `{file}`** — `{oldPath}` → `{newPath}`
+- [x] **5.2 创建 `{folderName}/` 目录** — 移动 {count} 个相关文件
+
+## 6. 文档清理（低风险）📝
+
+- [x] **6.1 简化冗长文档** — `{file}`（{before} 行 → {after} 行）
+- [x] **6.2 删除冗余标签** — {count} 个文件
+- [x] **6.3 补充缺失文档** — {count} 个公共 API 需要文档
 
 ---
 
@@ -310,8 +340,9 @@ Execute in this order for safest refactoring:
 4. Extract functions/methods (same file)
 5. Move functions/methods (between files)
 6. Extract utility classes/modules
-7. Class responsibility reorganization ← NEW
-8. Package/module restructure (highest impact)
+7. Bundle size optimization (dead code, class merging)
+8. Class responsibility reorganization
+9. Package/module restructure (highest impact)
 ```
 
 ---
@@ -474,6 +505,146 @@ If final validation fails:
 2. Use git diff to identify problematic change
 3. Fix only the broken part
 4. Re-validate only affected scope
+
+---
+
+## Phase 4: Bundle Size Optimization
+
+**Goal**: Reduce compiled artifact size without sacrificing functionality.
+
+### 4.1 Dead Code Elimination
+
+| Target | Detection | Action |
+|--------|-----------|--------|
+| Unused classes | No references anywhere | Delete entire file |
+| Unused methods | Private + no internal calls | Delete method |
+| Unused fields | Private + never read/written | Delete field |
+| Unused imports | IDE warnings | Delete imports |
+| Unused dependencies | No class from dep is used | Remove from build file |
+
+**Language-specific tools:**
+- Java: `gradle dependencies --configuration runtimeClasspath`, ProGuard/R8
+- JS/TS: `webpack-bundle-analyzer`, tree-shaking
+- Rust: `cargo bloat`, `--release` mode
+
+### 4.2 Reduce Class Count
+
+**Why**: Each class = bytecode overhead, classloader cost.
+
+| Pattern | Before | After | Savings |
+|---------|--------|-------|---------|
+| Merge tiny utils | 3 files × 2 methods each | 1 file × 6 methods | ~2 class files |
+| Inline single-use class | Helper used once | Inline to caller | 1 class file |
+| Convert class to static methods | Stateless service class | Utility methods | Reduces instance overhead |
+| Use lambdas over anonymous classes | `new Runnable() {...}` | `() -> {...}` | Synthetic class saved |
+
+**DO NOT merge if:**
+- Classes have different responsibilities
+- Classes are in public API
+- Classes are used in tests separately
+
+### 4.3 Reduce Abstraction Overhead
+
+| Over-abstraction | Simpler Alternative |
+|------------------|---------------------|
+| Interface + 1 implementation | Just the implementation (keep interface if API) |
+| Abstract class + 1 child | Merge into single class |
+| Factory for 1 product | Direct instantiation |
+| Builder for simple object | Constructor or static factory |
+| Multiple wrapper layers | Flatten to single layer |
+
+**Trade-off**: Maintain abstractions that provide clear extensibility points.
+
+### 4.4 String and Constant Optimization
+
+| Issue | Optimization |
+|-------|--------------|
+| Repeated string literals | Extract to `static final` constant |
+| String concatenation in loop | Use `StringBuilder` |
+| Large embedded strings | Move to resource file |
+| Debug-only strings | Wrap in conditional or remove |
+| Unused string constants | Delete |
+
+### 4.5 Dependency Optimization
+
+```
+1. List all dependencies
+2. For each dependency:
+   - How many classes are actually used?
+   - Is there a lighter alternative?
+   - Can functionality be inlined?
+3. Replace heavy deps with light alternatives
+4. Exclude transitive dependencies not needed
+```
+
+| Heavy Dependency | Lighter Alternative |
+|------------------|---------------------|
+| Guava (2.5MB) | Java stdlib (Collections, Optional) |
+| Apache Commons Lang | Java stdlib + small util |
+| Jackson (large) | Gson (smaller) or manual JSON |
+| Lombok | IDE generation (no runtime) |
+
+**Gradle exclusion example:**
+```groovy
+implementation('some:library') {
+    exclude group: 'unused.transitive', module: 'dep'
+}
+```
+
+### 4.6 Bytecode-Level Optimizations
+
+| Technique | Impact | How |
+|-----------|--------|-----|
+| Use primitives | Less boxing overhead | `int` instead of `Integer` |
+| Avoid varargs in hot paths | Array allocation | Provide overloads |
+| Final classes/methods | Enables JIT inlining | Add `final` modifier |
+| Static methods when possible | No `this` reference | Convert stateless instance methods |
+| Avoid reflection | Generated code + metadata | Use direct calls or code generation |
+
+### 4.7 Plan File Addition (Bundle Size Category)
+
+Add to `.refactor-plan.md`:
+
+```markdown
+## 7. Bundle Size Optimization 📦➖
+
+### 7.1 Dead Code Removal
+- [x] **7.1.1 Remove unused class** — `OldHelper.java` (0 references)
+- [x] **7.1.2 Remove unused methods** — 5 private methods across 3 files
+- [x] **7.1.3 Remove unused dependencies** — `commons-io` (unused)
+
+### 7.2 Class Consolidation
+- [x] **7.2.1 Merge utility classes** — `StringUtil` + `TextUtil` → `StringUtils`
+- [x] **7.2.2 Inline single-use helper** — `TempProcessor` → inline to `MainProcessor`
+
+### 7.3 Abstraction Reduction
+- [x] **7.3.1 Remove unused interface** — `Processor` (only 1 impl, not in API)
+- [x] **7.3.2 Merge abstract + single child** — `AbstractConfig` + `DefaultConfig`
+
+### 7.4 Dependency Optimization
+- [x] **7.4.1 Replace Guava Optional** — Use `java.util.Optional`
+- [x] **7.4.2 Exclude transitive dep** — Exclude `slf4j-simple` from `library-x`
+```
+
+### 4.8 Measurement
+
+Before and after refactoring:
+
+```bash
+# Java (Gradle)
+./gradlew build
+ls -lh build/libs/*.jar
+
+# Java (Maven)
+mvn package
+ls -lh target/*.jar
+
+# Node.js
+npm run build
+du -sh dist/
+```
+
+Report size delta in completion summary.
 
 ---
 
