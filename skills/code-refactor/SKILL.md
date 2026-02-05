@@ -1,6 +1,6 @@
 ---
 name: code-refactor
-description: "Multi-language code refactoring expert. Generates editable plan file for user approval. Trigger: refactor, clean code, organize, extract utility, DRY."
+description: "Multi-language code refactoring expert. Generates editable plan file for user approval. Trigger: refactor, clean code, organize, extract utility, DRY, naming convention, rename class."
 ---
 
 # Code Refactoring Skill
@@ -33,11 +33,39 @@ Load Related Skills: paper-plugin-dev (if Minecraft plugin detected)
 |------|--------|
 | 1 | Analyze scope, identify issues |
 | 2 | Create `.refactor-plan.md` using template from `references/plan-template.md` |
-| 3 | Notify user: "Review plan, reply Proceed/继续 or Cancel/取消" |
-| 4 | **WAIT** — Do NOT proceed until user confirms |
-| 5 | Parse: `[x]`=execute, `[ ]`=skip |
-| 6 | Execute checked items in priority order |
-| 7 | Delete plan file on success |
+| 3 | **Impact Assessment** — Evaluate each item (see below) |
+| 4 | Notify user: "Review plan, reply Proceed/继续 or Cancel/取消" |
+| 5 | **WAIT** — Do NOT proceed until user confirms |
+| 6 | Parse: `[x]`=execute, `[ ]`=skip |
+| 7 | Execute checked items in priority order |
+| 8 | Delete plan file on success |
+
+### Impact Assessment (Step 3)
+
+**Before presenting plan to user, evaluate each change:**
+
+| Check | Question | If YES |
+|-------|----------|--------|
+| **API Breaking** | Does this change public method signatures? | ⚠️ Mark HIGH RISK, warn user |
+| **Behavior Change** | Could this alter runtime behavior? | ⚠️ Add warning in plan |
+| **Test Coverage** | Are affected areas covered by tests? | If NO → Flag for manual review |
+| **Dependency Chain** | Do other classes depend on this? | List affected classes |
+| **Semantic Meaning** | Does rename preserve original intent? | If unclear → Ask user |
+
+**Add assessment notes to plan file:**
+
+```markdown
+## X. Some Refactoring Item
+- [x] **X.1** Rename `OldClass` → `NewClass`
+  > ⚠️ **Impact**: 5 files import this class
+  > ✅ **Safe**: No public API change, internal only
+  > 📋 **Tests**: Covered by `OldClassTest.java`
+```
+
+**Auto-uncheck risky items:**
+- Changes to public API without deprecation path → `[ ]` (unchecked by default)
+- Renames that change semantic meaning → `[ ]` + warning
+- Changes to classes with 0 test coverage → `[ ]` + flag
 
 ### Plan Categories (Risk Order)
 
@@ -53,10 +81,51 @@ See `references/plan-template.md` for full EN/CN templates.
 
 ---
 
+## Phase 1.5: Naming Convention Unification
+
+**Detect and fix inconsistent naming patterns.**
+
+See `references/naming-conventions.md` for full rules.
+
+### Detection
+
+| Pattern Conflict | Example | Resolution |
+|------------------|---------|------------|
+| `*Manager` vs `*Service` | `ConfigManager` + `UserService` | Pick one, rename all |
+| `*Utils` vs `*Util` | `StringUtils` + `FileUtil` | Unify to `*Utils` |
+| `*Helper` vs `*Utils` | `ValidationHelper` + `StringUtils` | Pick one |
+| `*DTO` vs `*VO` | `UserDTO` + `OrderVO` | Pick one |
+
+### Rename Workflow
+
+```
+1. Scan classes → Group by suffix pattern
+2. Identify minority pattern → Target for rename
+3. Generate rename map: OldName → NewName
+4. Add to plan file for user approval
+5. Execute:
+   a. Rename class declaration
+   b. Rename file (mv command)
+   c. Batch update imports
+   d. Update all references
+6. Validate build
+```
+
+### Plan File Entry
+
+```markdown
+## X. Naming Convention Fixes 🏷️
+- [x] **X.1** Rename `FileUtil` → `FileUtils` (consistency)
+- [x] **X.2** Rename `ConfigBackupManager` → `ConfigBackup` (simplify)
+- [x] **X.3** Update 12 files with import changes
+```
+
+---
+
 ## Phase 2: Execution Priority
 
 ```
-Low Risk:     Documentation → Constants → Rename
+Low Risk:     Documentation → Constants → Rename (naming)
 Medium Risk:  Extract methods → Move methods → Extract classes  
 High Risk:    Bundle optimize → Class responsibility → Package restructure
 ```
